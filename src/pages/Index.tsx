@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { v4 as uuidv4 } from 'uuid';
@@ -90,7 +89,7 @@ const Index = () => {
         // Display the widget code in a toast (this is also done in createWidgetFromCode now)
         toast({
           title: "Widget Code Received",
-          description: "Check the next toast for the actual code snippet",
+          description: "Creating widget from received code",
         });
         
         // Create a new widget from the returned code
@@ -100,29 +99,25 @@ const Index = () => {
         if (widget) {
           console.log("Widget created successfully:", widgetId);
           
-          // For weather widget, add default props if needed
-          let widgetWithProps: Widget = widget;
+          // For weather widget, add weather-specific props
+          const props = {
+            location: "Vancouver",
+            temperature: 6.88,
+            feelsLike: 4.11,
+            condition: "Moderate Rain",
+            windSpeed: 4.12,
+            humidity: 89,
+            precipitation: 0.85  // Adding precipitation prop that might be needed
+          };
           
-          // Detect the type of widget and add appropriate props
-          const isWeatherWidget = 
-            widget.component.name?.includes('Weather') || 
-            widget.component.displayName?.includes('Weather');
-            
-          if (isWeatherWidget) {
-            widgetWithProps = {
-              ...widget,
-              props: {
-                location: "Vancouver",
-                temperature: 6.88,
-                feelsLike: 4.11,
-                condition: "Moderate Rain",
-                windSpeed: 4.12,
-                humidity: 89
-              }
-            };
-          }
+          const widgetWithProps = {
+            ...widget,
+            props
+          };
           
+          // Add the new widget to the state
           setWidgets(prev => [...prev, widgetWithProps]);
+          
           toast({
             title: "Widget Created",
             description: "New widget has been added to your dashboard.",

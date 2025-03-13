@@ -16,20 +16,33 @@ const createWidgetFromCode = (
       description: `Received widget code (${widgetCode.length} characters)`,
     });
     
-    // Create a standalone component function that will render the widget content
+    // Extract the actual component code from the code blocks (if present)
+    let cleanedCode = widgetCode;
+    if (widgetCode.startsWith('```') && widgetCode.endsWith('```')) {
+      cleanedCode = widgetCode.replace(/^```(?:tsx|jsx)?/, '').replace(/```$/, '').trim();
+    }
+    
+    // Create a function that returns the evaluated component
+    const evalComponentCode = new Function('React', `
+      ${cleanedCode}
+      return WeatherWidget;
+    `);
+    
+    // Execute the function with React as parameter
+    const EvaluatedComponent = evalComponentCode(React);
+    
+    // Create a wrapper component that will render the evaluated component
     const WidgetComponent: React.FC<any> = (props) => {
       try {
+        // If we successfully evaluated the component, render it with props
+        if (EvaluatedComponent && typeof EvaluatedComponent === 'function') {
+          return React.createElement(EvaluatedComponent, props);
+        }
+        
+        // Fallback if component evaluation failed
         return React.createElement('div', { 
-          className: 'widget-content p-4 h-full overflow-auto',
-          key: id
-        }, [
-          // Create a display of the widget content
-          React.createElement('div', { 
-            className: 'bg-white rounded-md shadow-sm p-4 h-full overflow-auto',
-            key: 'content',
-            dangerouslySetInnerHTML: { __html: widgetCode }
-          })
-        ]);
+          className: 'p-4 border border-yellow-200 bg-yellow-50 rounded',
+        }, "Widget could not be rendered properly");
       } catch (error) {
         console.error('Error rendering widget:', error);
         return React.createElement('div', { 
