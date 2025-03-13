@@ -42,8 +42,7 @@ const sendTranscriptionToN8n = async (
     // For demo purposes, we'll return a mock response
     // This would come from n8n in a real scenario with proper CORS
     const mockResponse = {
-      output: `import React from 'react';
-
+      output: `
 const StockWidget = () => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-md w-full h-full">
@@ -56,8 +55,7 @@ const StockWidget = () => {
     </div>
   );
 };
-
-export default StockWidget;`
+`
     };
     
     return mockResponse;

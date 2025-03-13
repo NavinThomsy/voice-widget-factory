@@ -1,5 +1,4 @@
 
-import { createClient } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
 import React from 'react';
 
@@ -9,18 +8,25 @@ const createWidgetFromCode = (
   id: string
 ): { component: React.ComponentType<any>; id: string } | null => {
   try {
+    // Extract the component code by removing the import and export statements
+    const componentCode = widgetCode
+      .replace(/import\s+.*?from\s+(['"]).*?\1;?/g, '')  // Remove import statements
+      .replace(/export\s+default\s+\w+;?/g, '');  // Remove export default
+    
     // Create a function body to evaluate the React component code
     const functionBody = `
-      ${widgetCode}
-      return { default: StockWidget };
+      const React = arguments[0];
+      ${componentCode}
+      return StockWidget;
     `;
     
-    // Use Function constructor to evaluate the code
-    const componentModule = new Function('React', functionBody)(React);
+    // Use Function constructor to evaluate the code with React passed as an argument
+    const componentConstructor = new Function(functionBody);
+    const Component = componentConstructor(React);
     
     // Return the component and its ID
     return {
-      component: componentModule.default,
+      component: Component,
       id
     };
   } catch (error) {
