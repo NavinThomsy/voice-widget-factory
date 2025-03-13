@@ -10,14 +10,10 @@ const createWidgetFromCode = (
   try {
     console.log("Raw widget code:", widgetCode);
     
-    // Display the code in a toast message
+    // Display the code in a toast message without using JSX in a .ts file
     toast({
       title: "Widget Code",
-      description: (
-        <pre className="max-h-[300px] overflow-auto text-xs p-2 bg-slate-100 rounded">
-          <code>{widgetCode}</code>
-        </pre>
-      ),
+      description: `Widget code loaded (${widgetCode.length} characters)`,
     });
     
     // Clean the code - removing imports and exports
