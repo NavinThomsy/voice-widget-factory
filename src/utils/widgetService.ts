@@ -10,6 +10,16 @@ const createWidgetFromCode = (
   try {
     console.log("Raw widget code:", widgetCode);
     
+    // Display the code in a toast message
+    toast({
+      title: "Widget Code",
+      description: (
+        <pre className="max-h-[300px] overflow-auto text-xs p-2 bg-slate-100 rounded">
+          <code>{widgetCode}</code>
+        </pre>
+      ),
+    });
+    
     // Clean the code - removing imports and exports
     let componentCode = widgetCode
       .replace(/import\s+.*?from\s+(['"]).*?\1;?/g, '')  // Remove import statements
@@ -27,16 +37,19 @@ const createWidgetFromCode = (
     console.log(`Identified component: ${componentName}`);
     console.log("Cleaned component code:", componentCode);
     
-    // Also remove any App or example components that might be in the code
-    componentCode = componentCode.replace(/const\s+App\s*[:=][\s\S]*?;\s*$/m, '');
+    // Remove App component and any default exports
+    componentCode = componentCode.replace(/const\s+App(?::|=)[\s\S]*?(?:;|\}$)/m, '');
     componentCode = componentCode.replace(/const\s+App\s*=\s*\(\)\s*=>\s*{[\s\S]*?}\s*;\s*$/m, '');
+    componentCode = componentCode.replace(/export\s+default\s+(?:.*?);?\s*$/m, '');
     
     // Create a function body that properly evaluates React JSX
     const functionBody = `
+      "use strict";
       try {
         const React = arguments[0];
         ${componentCode}
         
+        // Return the component if it's a valid function
         if (typeof ${componentName} !== 'function') {
           console.error("Component is not a function:", typeof ${componentName});
           return null;

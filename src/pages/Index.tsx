@@ -87,6 +87,12 @@ const Index = () => {
       if (result?.output) {
         console.log("Received widget code from n8n workflow:", result.output);
         
+        // Display the widget code in a toast (this is also done in createWidgetFromCode now)
+        toast({
+          title: "Widget Code Received",
+          description: "Check the next toast for the actual code snippet",
+        });
+        
         // Create a new widget from the returned code
         const widgetId = uuidv4();
         const widget = createWidgetFromCode(result.output, widgetId);
@@ -94,11 +100,15 @@ const Index = () => {
         if (widget) {
           console.log("Widget created successfully:", widgetId);
           
-          // For weather widget, add some default props
+          // For weather widget, add default props if needed
           let widgetWithProps: Widget = widget;
           
-          if (widget.component.name === 'WeatherWidget' || 
-              (widget.component.displayName === 'WeatherWidget')) {
+          // Detect the type of widget and add appropriate props
+          const isWeatherWidget = 
+            widget.component.name?.includes('Weather') || 
+            widget.component.displayName?.includes('Weather');
+            
+          if (isWeatherWidget) {
             widgetWithProps = {
               ...widget,
               props: {
