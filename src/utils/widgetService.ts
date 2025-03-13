@@ -16,11 +16,15 @@ const createWidgetFromCode = (
       .replace(/export\s+default\s+\w+;?/g, '')  // Remove export default
       .trim();
     
-    // Make sure we have valid JSX by ensuring we have a React component
-    if (!componentCode.includes('const StockWidget') && !componentCode.includes('function StockWidget')) {
-      throw new Error("Widget code must contain a StockWidget component");
+    // Extract the main component name from the code
+    const componentNameMatch = componentCode.match(/(?:const|function)\s+(\w+Widget)\s*(?::|=)/);
+    const componentName = componentNameMatch ? componentNameMatch[1] : null;
+    
+    if (!componentName) {
+      throw new Error("Widget code must contain a valid widget component (named with 'Widget' suffix)");
     }
     
+    console.log(`Identified component: ${componentName}`);
     console.log("Cleaned component code:", componentCode);
     
     // Create a function body that properly evaluates React JSX
@@ -28,7 +32,7 @@ const createWidgetFromCode = (
       try {
         const React = arguments[0];
         ${componentCode}
-        return typeof StockWidget === 'function' ? StockWidget : null;
+        return typeof ${componentName} === 'function' ? ${componentName} : null;
       } catch (error) {
         console.error("Error in widget code:", error);
         return null;
@@ -40,7 +44,7 @@ const createWidgetFromCode = (
     const Component = componentConstructor(React);
     
     if (!Component) {
-      throw new Error("Component creation failed: Component is undefined or not a function");
+      throw new Error(`Component creation failed: ${componentName} is undefined or not a function`);
     }
     
     console.log("Widget component created successfully");
