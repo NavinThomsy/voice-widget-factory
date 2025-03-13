@@ -20,9 +20,15 @@ const createWidgetFromCode = (
       return StockWidget;
     `;
     
+    console.log("Attempting to create widget with code:", componentCode);
+    
     // Use Function constructor to evaluate the code with React passed as an argument
     const componentConstructor = new Function(functionBody);
     const Component = componentConstructor(React);
+    
+    if (!Component) {
+      throw new Error("Component creation failed: Component is undefined");
+    }
     
     // Return the component and its ID
     return {

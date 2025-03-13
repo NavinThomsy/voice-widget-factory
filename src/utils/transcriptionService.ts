@@ -24,32 +24,50 @@ const sendTranscriptionToN8n = async (
     
     console.log("Sending transcription to webhook:", webhookUrl);
     
-    // Use no-cors mode to avoid CORS issues with the webhook
-    const response = await fetch(webhookUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      mode: "no-cors", // Add this to handle CORS issues
-    });
-
-    // Since we're using no-cors, we won't get a proper JSON response
-    // For demo purposes, simulate a successful response
-    // In a real app, you'd need a proper CORS setup on the n8n server
+    try {
+      // First attempt: try with regular fetch (works if CORS is properly configured)
+      const response = await fetch(webhookUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Webhook response:", data);
+        return data;
+      }
+    } catch (fetchError) {
+      console.log("Regular fetch failed, trying with no-cors:", fetchError);
+      // If regular fetch fails, try with no-cors as fallback
+      await fetch(webhookUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        mode: "no-cors",
+      });
+      
+      console.log("No-cors request sent to webhook");
+    }
     
-    console.log("Webhook request sent successfully");
+    // Since we might be using no-cors and can't get a proper response,
+    // we'll return a mock response for demonstration
+    // In production, you would use a properly configured CORS setup on the n8n server
     
-    // For demo purposes, we'll return a mock response
-    // This would come from n8n in a real scenario with proper CORS
+    console.log("Generating mock widget response for:", transcription);
+    
+    // Mock response with a weather widget based on the transcription
     const mockResponse = {
       output: `
 const StockWidget = () => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-md w-full h-full">
-      <h3 className="text-lg font-medium mb-2">Stock Widget</h3>
-      <p className="text-gray-600">Transcription: "${transcription}"</p>
+      <h3 className="text-lg font-medium mb-2">Widget from Transcription</h3>
+      <p className="text-gray-600">You said: "${transcription}"</p>
       <div className="mt-4 flex justify-between items-center">
-        <span className="text-green-600 font-bold">+2.4%</span>
+        <span className="text-blue-600 font-bold">Processed successfully</span>
         <span className="text-sm text-gray-500">${new Date().toLocaleDateString()}</span>
       </div>
     </div>

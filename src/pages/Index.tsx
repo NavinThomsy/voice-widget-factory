@@ -78,21 +78,40 @@ const Index = () => {
     });
     
     try {
+      console.log("Sending transcription to n8n:", transcription);
+      
       // Send transcription to n8n
       const result = await sendTranscriptionToN8n(transcription, WEBHOOK_ID);
       
       if (result?.output) {
+        console.log("Received widget code from n8n workflow");
+        
         // Create a new widget from the returned code
         const widgetId = uuidv4();
         const widget = createWidgetFromCode(result.output, widgetId);
         
         if (widget) {
+          console.log("Widget created successfully:", widgetId);
           setWidgets(prev => [...prev, widget]);
           toast({
             title: "Widget Created",
             description: "New widget has been added to your dashboard.",
           });
+        } else {
+          console.error("Widget creation returned null");
+          toast({
+            title: "Widget Creation Failed",
+            description: "Failed to create widget from the received code.",
+            variant: "destructive",
+          });
         }
+      } else {
+        console.error("No output received from n8n");
+        toast({
+          title: "Processing Failed",
+          description: "No widget code was returned from the workflow.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error processing transcription:', error);
