@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import '../styles/VoiceInput.css';
 
 interface VoiceInputProps {
   onTranscription: (text: string) => void;

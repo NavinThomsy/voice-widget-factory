@@ -9,7 +9,7 @@ import { sendTranscriptionToN8n } from '@/utils/transcriptionService';
 import { createWidgetFromCode } from '@/utils/widgetService';
 import { toast } from '@/components/ui/use-toast';
 
-// For demo purposes, you would connect this to your actual n8n webhook ID
+// Using the webhook ID provided by the user
 const WEBHOOK_ID = 'e4095d4b-e25e-46c4-b156-65544cdee750';
 
 interface Widget {

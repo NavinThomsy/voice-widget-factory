@@ -21,7 +21,7 @@ const sendTranscriptionToN8n = async (
 
     // Send to n8n webhook (GET request)
     const response = await fetch(
-      `http://localhost:5678/webhook-test/${webhookId}?${queryParams}`,
+      `http://localhost:5678/webhook/${webhookId}?${queryParams}`,
       {
         method: "GET",
         headers: {
