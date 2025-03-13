@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -6,6 +7,11 @@ import '../styles/VoiceInput.css';
 interface VoiceInputProps {
   onTranscription: (text: string) => void;
   isProcessing: boolean;
+}
+
+// Extended SpeechRecognitionEvent interface to include error property
+interface ExtendedSpeechRecognitionEvent extends SpeechRecognitionEvent {
+  error?: string;
 }
 
 const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscription, isProcessing }) => {
@@ -71,12 +77,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onTranscription, isProcessing }
       setIsListening(false);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: ExtendedSpeechRecognitionEvent) => {
       console.error('Speech recognition error', event.error);
       setIsListening(false);
       toast({
         title: "Voice Recognition Error",
-        description: `Error: ${event.error}. Please try again.`,
+        description: `Error: ${event.error || 'Unknown'}. Please try again.`,
         variant: "destructive",
       });
     };

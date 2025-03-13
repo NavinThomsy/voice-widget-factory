@@ -4,6 +4,7 @@ import { GridStack, GridStackNode } from 'gridstack';
 import 'gridstack/dist/gridstack.min.css';
 import { X } from 'lucide-react';
 import EmptyState from './EmptyState';
+import * as ReactDOM from 'react-dom/client';
 
 // Define our widget type
 interface Widget {
