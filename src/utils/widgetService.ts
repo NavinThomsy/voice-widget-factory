@@ -8,27 +8,42 @@ const createWidgetFromCode = (
   id: string
 ): { component: React.ComponentType<any>; id: string } | null => {
   try {
-    // Extract the component code by removing the import and export statements
-    const componentCode = widgetCode
+    console.log("Raw widget code:", widgetCode);
+    
+    // Clean the code - removing imports and exports
+    let componentCode = widgetCode
       .replace(/import\s+.*?from\s+(['"]).*?\1;?/g, '')  // Remove import statements
-      .replace(/export\s+default\s+\w+;?/g, '');  // Remove export default
+      .replace(/export\s+default\s+\w+;?/g, '')  // Remove export default
+      .trim();
     
-    // Create a function body to evaluate the React component code
+    // Make sure we have valid JSX by ensuring we have a React component
+    if (!componentCode.includes('const StockWidget') && !componentCode.includes('function StockWidget')) {
+      throw new Error("Widget code must contain a StockWidget component");
+    }
+    
+    console.log("Cleaned component code:", componentCode);
+    
+    // Create a function body that properly evaluates React JSX
     const functionBody = `
-      const React = arguments[0];
-      ${componentCode}
-      return StockWidget;
+      try {
+        const React = arguments[0];
+        ${componentCode}
+        return typeof StockWidget === 'function' ? StockWidget : null;
+      } catch (error) {
+        console.error("Error in widget code:", error);
+        return null;
+      }
     `;
-    
-    console.log("Attempting to create widget with code:", componentCode);
     
     // Use Function constructor to evaluate the code with React passed as an argument
     const componentConstructor = new Function(functionBody);
     const Component = componentConstructor(React);
     
     if (!Component) {
-      throw new Error("Component creation failed: Component is undefined");
+      throw new Error("Component creation failed: Component is undefined or not a function");
     }
+    
+    console.log("Widget component created successfully");
     
     // Return the component and its ID
     return {

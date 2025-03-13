@@ -1,5 +1,6 @@
 
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TranscriptionResult {
   transcription: string;
@@ -24,59 +25,44 @@ const sendTranscriptionToN8n = async (
     
     console.log("Sending transcription to webhook:", webhookUrl);
     
-    try {
-      // First attempt: try with regular fetch (works if CORS is properly configured)
-      const response = await fetch(webhookUrl, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Webhook response:", data);
-        return data;
-      }
-    } catch (fetchError) {
-      console.log("Regular fetch failed, trying with no-cors:", fetchError);
-      // If regular fetch fails, try with no-cors as fallback
-      await fetch(webhookUrl, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-        mode: "no-cors",
-      });
-      
-      console.log("No-cors request sent to webhook");
+    // Send the request to N8N webhook
+    const response = await fetch(webhookUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    
+    if (!response.ok) {
+      console.error("Error response from webhook:", response.status, response.statusText);
+      throw new Error(`Error response from webhook: ${response.status} ${response.statusText}`);
     }
     
-    // Since we might be using no-cors and can't get a proper response,
-    // we'll return a mock response for demonstration
-    // In production, you would use a properly configured CORS setup on the n8n server
+    // Parse the response
+    const data = await response.json();
+    console.log("Webhook response data:", data);
     
-    console.log("Generating mock widget response for:", transcription);
+    // Store in Supabase for history
+    if (data && data.output) {
+      try {
+        const { error } = await supabase
+          .from('widget_history')
+          .insert({
+            transcription: transcription,
+            widget_code: data.output,
+            created_at: new Date().toISOString()
+          });
+          
+        if (error) {
+          console.error("Error storing widget in Supabase:", error);
+        }
+      } catch (supabaseError) {
+        console.error("Supabase error:", supabaseError);
+      }
+    }
     
-    // Mock response with a weather widget based on the transcription
-    const mockResponse = {
-      output: `
-const StockWidget = () => {
-  return (
-    <div className="bg-white p-4 rounded-lg shadow-md w-full h-full">
-      <h3 className="text-lg font-medium mb-2">Widget from Transcription</h3>
-      <p className="text-gray-600">You said: "${transcription}"</p>
-      <div className="mt-4 flex justify-between items-center">
-        <span className="text-blue-600 font-bold">Processed successfully</span>
-        <span className="text-sm text-gray-500">${new Date().toLocaleDateString()}</span>
-      </div>
-    </div>
-  );
-};
-`
-    };
-    
-    return mockResponse;
+    return data;
   } catch (error) {
     console.error("Error sending transcription to n8n:", error);
     toast({

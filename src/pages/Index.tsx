@@ -8,6 +8,7 @@ import Dashboard from '@/components/Dashboard';
 import { sendTranscriptionToN8n } from '@/utils/transcriptionService';
 import { createWidgetFromCode } from '@/utils/widgetService';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 // Using the webhook ID provided by the user
 const WEBHOOK_ID = 'e4095d4b-e25e-46c4-b156-65544cdee750';
@@ -84,7 +85,7 @@ const Index = () => {
       const result = await sendTranscriptionToN8n(transcription, WEBHOOK_ID);
       
       if (result?.output) {
-        console.log("Received widget code from n8n workflow");
+        console.log("Received widget code from n8n workflow:", result.output);
         
         // Create a new widget from the returned code
         const widgetId = uuidv4();
