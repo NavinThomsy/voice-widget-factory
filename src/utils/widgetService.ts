@@ -16,8 +16,8 @@ const createWidgetFromCode = (
       .replace(/export\s+default\s+\w+;?/g, '')  // Remove export default
       .trim();
     
-    // Extract the main component name from the code
-    const componentNameMatch = componentCode.match(/(?:const|function)\s+(\w+Widget)\s*(?::|=)/);
+    // Extract the main component name that ends with Widget
+    const componentNameMatch = componentCode.match(/(?:const|function|class)\s+(\w+Widget)\s*(?::|=|extends)/);
     const componentName = componentNameMatch ? componentNameMatch[1] : null;
     
     if (!componentName) {
@@ -27,12 +27,22 @@ const createWidgetFromCode = (
     console.log(`Identified component: ${componentName}`);
     console.log("Cleaned component code:", componentCode);
     
+    // Also remove any App or example components that might be in the code
+    componentCode = componentCode.replace(/const\s+App\s*[:=][\s\S]*?;\s*$/m, '');
+    componentCode = componentCode.replace(/const\s+App\s*=\s*\(\)\s*=>\s*{[\s\S]*?}\s*;\s*$/m, '');
+    
     // Create a function body that properly evaluates React JSX
     const functionBody = `
       try {
         const React = arguments[0];
         ${componentCode}
-        return typeof ${componentName} === 'function' ? ${componentName} : null;
+        
+        if (typeof ${componentName} !== 'function') {
+          console.error("Component is not a function:", typeof ${componentName});
+          return null;
+        }
+        
+        return ${componentName};
       } catch (error) {
         console.error("Error in widget code:", error);
         return null;

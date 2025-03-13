@@ -93,7 +93,26 @@ const Index = () => {
         
         if (widget) {
           console.log("Widget created successfully:", widgetId);
-          setWidgets(prev => [...prev, widget]);
+          
+          // For weather widget, add some default props
+          let widgetWithProps: Widget = widget;
+          
+          if (widget.component.name === 'WeatherWidget' || 
+              (widget.component.displayName === 'WeatherWidget')) {
+            widgetWithProps = {
+              ...widget,
+              props: {
+                location: "Vancouver",
+                temperature: 6.88,
+                feelsLike: 4.11,
+                condition: "Moderate Rain",
+                windSpeed: 4.12,
+                humidity: 89
+              }
+            };
+          }
+          
+          setWidgets(prev => [...prev, widgetWithProps]);
           toast({
             title: "Widget Created",
             description: "New widget has been added to your dashboard.",
